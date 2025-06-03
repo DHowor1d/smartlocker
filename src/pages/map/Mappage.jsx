@@ -41,7 +41,7 @@ function Mappage() {
   }, []);
 
  return (
-   <div className="max-w-xl min-h-screen mx-auto bg-gray-50">
+   <div className="relative max-w-md min-h-screen mx-auto bg-gray-50">
      <div className="relative p-2">
        <Map
          center={location}
@@ -70,11 +70,15 @@ function Mappage() {
            <img src={logo} className="h-14" alt="INU Broong" />
          </div>
        </div>
-       <div className="absolute z-10 bottom-6 right-6">
-         <Button />
-       </div>
-     </div>
-   </div>
+
+       <div className="absolute left-0 right-0 z-10 px-4 bottom-6">
+        <div className="flex gap-4">
+          <Button/>
+          <Button/>
+        </div>
+      </div>
+    </div>
+  </div>
  );
 }
 

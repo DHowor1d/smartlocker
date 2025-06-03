@@ -2,7 +2,7 @@ import React from 'react'
 
 function Button() {
   return (
-    <div className="p-4 text-3xl bg-gray-300 rounded-lg text-gray-50">
+    <div className="flex-1 px-4 py-3 text-xl text-center bg-gray-300 rounded-md cursor-pointer text-gray-50 hover:bg-gray-400">
       Button
     </div>
   );

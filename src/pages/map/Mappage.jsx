@@ -25,7 +25,7 @@ const handleBuzzerClick = async () => {
 
     setShowToast(true);
     // 토스트 메시지가 완전히 보여진 후 사라지도록 시간 조정
-    setTimeout(() => setShowToast(false), 2500);
+    setTimeout(() => setShowToast(false), 3000);
     
     setTimeout(async () => {
       await set(buzzerRef, 0);

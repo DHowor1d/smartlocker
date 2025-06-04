@@ -1,16 +1,39 @@
 import { Map, MapMarker} from "react-kakao-maps-sdk"
 import { useEffect, useState } from 'react'
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, onValue } from "firebase/database";
+import { getDatabase, ref, set, onValue } from "firebase/database";
 import logo from '../../assets/logo.png'
 import marker from '../../assets/marker.png'
 import Button from "../../components/button/Button";
+import SkeletonUI from "../../components/skeleton/Skeleton";
+import Toast from "../../components/toast/Toast";
 
 function Mappage() {
   const [location, setLocation] = useState({ 
     lat: 33,
     lng: 127
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [database, setDatabase] = useState(null);
+  const [showToast, setShowToast] = useState(false);
+
+const handleBuzzerClick = async () => {
+  try {
+    if (!database) return;
+    const buzzerRef = ref(database, 'buzzer');
+    await set(buzzerRef, 1);
+
+    setShowToast(true);
+    // 토스트 메시지가 완전히 보여진 후 사라지도록 시간 조정
+    setTimeout(() => setShowToast(false), 2500);
+    
+    setTimeout(async () => {
+      await set(buzzerRef, 0);
+    }, 10000);
+  } catch (error) {
+    console.error('부저 설정 중 오류 발생:', error);
+  }
+};
 
   useEffect(() => {
 
@@ -21,18 +44,22 @@ function Mappage() {
 
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
+    setDatabase(database);
     const locationRef = ref(database, 'location');
 
     //실시간 위치 업데이트
     onValue(locationRef, (snapshot) => {
       const data = snapshot.val();
-      // console.log('새로운 위치 데이터:', data); //테스트
+      setIsLoading(false);
       if (data) {
         setLocation({
           lat: data.lat,
           lng: data.lng
         });
       }
+    }, (error) => {
+      setIsLoading(true);
+      console.error(error);
     });
 
     const kakao = window.kakao;
@@ -40,8 +67,13 @@ function Mappage() {
     });
   }, []);
 
+    if (isLoading) {
+    return <SkeletonUI />;
+  }
+
  return (
    <div className="relative max-w-md min-h-screen mx-auto bg-gray-50">
+    <Toast message={'브룽의 벨이 울렸습니다 \n 주변에서 벨이 울리는 브룽을 찾아보세요'} isVisible={showToast} />
      <div className="relative p-2">
        <Map
          center={location}
@@ -73,7 +105,7 @@ function Mappage() {
 
        <div className="absolute left-0 right-0 z-10 px-4 bottom-6">
         <div className="flex gap-4">
-          <Button/>
+          <Button onClick={handleBuzzerClick}>벨 울리기</Button>
           <Button/>
         </div>
       </div>

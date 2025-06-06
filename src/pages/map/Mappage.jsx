@@ -1,4 +1,4 @@
-import { Map, MapMarker} from "react-kakao-maps-sdk"
+import { Map, MapMarker,Polyline} from "react-kakao-maps-sdk"
 import { useEffect, useState } from 'react'
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, set, onValue } from "firebase/database";
@@ -16,6 +16,8 @@ function Mappage() {
   const [isLoading, setIsLoading] = useState(true);
   const [database, setDatabase] = useState(null);
   const [showToast, setShowToast] = useState(false);
+  const [timelineData, setTimelineData] = useState([]);
+  const [showTimeline, setShowTimeline] = useState(false);
 
 const handleBuzzerClick = async () => {
   try {
@@ -33,6 +35,29 @@ const handleBuzzerClick = async () => {
   } catch (error) {
     console.error('부저 설정 중 오류 발생:', error);
   }
+};
+
+//타임라인
+const handleTimelineClick = async () => {
+  setShowTimeline(!showTimeline);
+  
+  if (!database) return;
+  const locationsRef = ref(database, 'locations');
+  
+  // locations 데이터 가져오기
+  onValue(locationsRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      const paths = Object.values(data)
+        .slice(-100) // 최근 100개만 가져오기
+        .map(location => ({
+          lat: location.lat,
+          lng: location.lng
+        }));
+      
+      setTimelineData(paths);
+    }
+  });
 };
 
   useEffect(() => {
@@ -73,7 +98,12 @@ const handleBuzzerClick = async () => {
 
  return (
    <div className="relative max-w-md min-h-screen mx-auto bg-gray-50">
-    <Toast message={'브룽의 벨이 울렸습니다 \n 주변에서 벨이 울리는 브룽을 찾아보세요'} isVisible={showToast} />
+     <Toast
+       message={
+         "브룽의 벨이 울렸습니다 \n 주변에서 벨이 울리는 브룽을 찾아보세요"
+       }
+       isVisible={showToast}
+     />
      <div className="relative p-2">
        <Map
          center={location}
@@ -96,6 +126,15 @@ const handleBuzzerClick = async () => {
              },
            }}
          />
+         {showTimeline && (
+           <Polyline
+             path={timelineData}
+             strokeWeight={4}
+             strokeColor="blue"
+             strokeOpacity={0.5}
+             strokeStyle="solid"
+           />
+         )}
        </Map>
        <div className="absolute z-10 top-2 ">
          <div className="flex items-center justify-between px-4 py-2">
@@ -104,13 +143,15 @@ const handleBuzzerClick = async () => {
        </div>
 
        <div className="absolute left-0 right-0 z-10 px-4 bottom-6">
-        <div className="flex gap-4">
-          <Button onClick={handleBuzzerClick}>벨 울리기</Button>
-          <Button/>
-        </div>
-      </div>
-    </div>
-  </div>
+         <div className="flex gap-4">
+           <Button onClick={handleBuzzerClick}>벨 울리기</Button>
+           <Button onClick={handleTimelineClick}>
+             {showTimeline ? "타임라인 숨기기" : "타임라인"}
+           </Button>
+         </div>
+       </div>
+     </div>
+   </div>
  );
 }
 
